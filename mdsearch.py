@@ -1,4 +1,6 @@
+import os
 import pickle
+from calendar import c
 from pathlib import Path
 
 import typer
@@ -63,8 +65,39 @@ y
 
 
 @app.command()
-def hello():
-    console.print("Is my mic on????")
+def index(vault_path: str):
+    vault = Path(vault_path).expanduser()
+
+    if not vault.exists():
+        console.print(f"[red]Vault path does not exist:[/red] {vault}")
+        raise typer.Exit(1)
+
+    INDEX_DIR.mkdir(exist_ok=True)
+    md_files = list(vault.rglob("*.md"))
+
+    console.print(f"{len(md_files)} markdown files found!")
+
+    all_chunks = []
+    metadata = []
+
+    for file in md_files:
+        text = file.read_text(encoding="utf-8", errors="ignore")
+        chunks = chunk_text(text)
+
+        for i, chunk in enumerate(chunks):
+            all_chunks.append(chunk)
+            metadata.append({"file": str(file), "chunk_id": i, "text": chunk})
+
+    console.print(f"{len(all_chunks)} chunks created!")
+
+    if not all_chunks:
+        console.print("[red]No chunks found.[/red]")
+        raise typer.Exit(1)
+
+    with open(META_FILE, "wb") as f:
+        pickle.dump(metadata, f)
+
+    console.print(f"[green]Saved metadata to {META_FILE}[/green]")
 
 
 if __name__ == "__main__":
