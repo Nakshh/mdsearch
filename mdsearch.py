@@ -3,8 +3,10 @@ import pickle
 from calendar import c
 from pathlib import Path
 
+import numpy as np
 import typer
 from rich.console import Console
+from sentence_tranformers import SentenceTransformer
 
 app = typer.Typer()
 console = Console()
@@ -73,6 +75,9 @@ def index(vault_path: str):
         raise typer.Exit(1)
 
     INDEX_DIR.mkdir(exist_ok=True)
+
+    model = SentenceTransformer(MODEL_NAME)
+
     md_files = list(vault.rglob("*.md"))
 
     console.print(f"{len(md_files)} markdown files found!")
@@ -98,6 +103,11 @@ def index(vault_path: str):
         pickle.dump(metadata, f)
 
     console.print(f"[green]Saved metadata to {META_FILE}[/green]")
+
+    embeddings = model.encode(all_chunks, show_progress_bar=True)
+
+    embeddings = np.array(embeddings).astype("float32")
+    console.print(embeddings.shape)
 
 
 if __name__ == "__main__":
