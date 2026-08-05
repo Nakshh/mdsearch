@@ -1,5 +1,7 @@
 # mdsearch
 
+[![PyPI](https://img.shields.io/pypi/v/mdsearch-cli)](https://pypi.org/project/mdsearch-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/mdsearch-cli)](https://pypi.org/project/mdsearch-cli/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Semantic search over a folder of markdown files — built for Obsidian vaults,
@@ -25,8 +27,25 @@ the embedding model understands the two phrases are related.
 ## Install
 
 ```bash
+brew install pipx   # if you don't already have it
+pipx install mdsearch-cli
+```
+
+`pipx` installs the CLI into its own isolated environment and puts
+`mdsearch` on your `PATH` — the right way to install a Python *application*
+rather than a library. If you'd rather use plain `pip`, do it inside a
+virtualenv:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install mdsearch-cli
 ```
+
+(A bare `pip install mdsearch-cli` outside a venv fails with an
+"externally managed environment" error on Homebrew's Python — that's
+[PEP 668](https://peps.python.org/pep-0668/), and it applies to every
+package, not just this one. `pipx` or a venv is the fix, not
+`--break-system-packages`.)
 
 The package is named `mdsearch-cli` on PyPI (`mdsearch` was already taken by
 an unrelated project), but it installs the same `mdsearch` command and
@@ -43,31 +62,49 @@ pip install -e .
 Requires Python 3.11+. The first run downloads a small embedding model
 (`all-MiniLM-L6-v2`, ~90MB) from Hugging Face and caches it locally.
 
+### A Hugging Face token is required
+
+`index` and `search` both refuse to run without one — get a free token and
+export it before using either command:
+
+```bash
+export HF_TOKEN=hf_your_token_here                     # get one: https://huggingface.co/settings/tokens
+echo 'export HF_TOKEN=hf_your_token_here' >> ~/.zshrc  # persist it across sessions
+```
+
 ## Usage
 
-Build (or incrementally update) the index for a vault:
+### Try it right now
+
+The repo ships a small, non-personal [sample vault](sample-vault) so you can
+see semantic search work immediately, no vault of your own required:
+
+```bash
+git clone https://github.com/Nakshh/mdsearch.git
+cd mdsearch/sample-vault
+mdsearch index
+mdsearch search "notes on memoization" -k 3
+```
+
+![mdsearch search output](docs/assets/search-demo.png)
+
+None of the four notes in that vault contain the word "memoization" — but
+`mdsearch` ranks the two notes about caching recursive results at the top,
+puts the interview-prep note (which only mentions caching in passing) third,
+and correctly leaves out the unrelated focaccia recipe entirely.
+
+### On your own vault
+
+Build (or incrementally update) the index — `vault_path` defaults to the
+current directory, same as `search`:
 
 ```bash
 $ mdsearch index ~/ObsidianVault
 Indexed. added=142 updated=0 removed=0 unchanged=0 chunks=891 (38.42s)
 ```
 
-Search it:
-
-```bash
-$ mdsearch search "notes on memoization" --vault-path ~/ObsidianVault --top-k 3
-┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ File               ┃ Chunk ┃ Score ┃ Snippet                                 ┃
-┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ caching-notes.md   │     2 │ 0.612 │ # Caching strategies Used a dict as a  │
-│                    │       │       │ simple memo table to avoid recomputing │
-│                    │       │       │ expensive recursive calls...           │
-│ algorithms.md      │     0 │ 0.401 │ # Dynamic programming DP is really     │
-│                    │       │       │ just recursion plus caching...         │
-│ interview-prep.md  │     5 │ 0.318 │ # Common gotchas Forgetting to cache   │
-│                    │       │       │ results leads to exponential blowup... │
-└────────────────────┴───────┴───────┴─────────────────────────────────────────┘
-```
+Then search the same way as above, just pointing `--vault-path` at it
+instead of `sample-vault`.
 
 Re-running `index` on an unchanged vault is a near-instant no-op — every
 file's content hash is checked against a manifest, and only changed or new
@@ -82,7 +119,7 @@ Indexed. added=0 updated=0 removed=0 unchanged=142 chunks=891 (0.01s)
 
 | Command | Description |
 |---|---|
-| `mdsearch index <vault_path>` | Build or incrementally update the index for a vault. |
+| `mdsearch index [vault_path]` | Build or incrementally update the index for a vault; defaults to the current directory. |
 | `mdsearch search <query>` | Search an already-indexed vault. |
 | `mdsearch --version` | Print the installed version. |
 
