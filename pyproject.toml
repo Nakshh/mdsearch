@@ -1,0 +1,27 @@
+[project]
+name = "mdsearch"
+version = "0.1.0"
+description = "Semantic search over a markdown (Obsidian) vault, as a CLI and an MCP server"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Nakshh Kohli", email = "nakshhkohli04@gmail.com" }]
+dependencies = [
+    "faiss-cpu>=1.14",
+    "sentence-transformers>=5.5",
+    "torch>=2.12",
+    "transformers>=5.9",
+    "numpy>=2.4",
+    "typer>=0.25",
+    "rich>=15.0",
+]
+
+[project.scripts]
+mdsearch = "mdsearch.cli:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mdsearch*"]
