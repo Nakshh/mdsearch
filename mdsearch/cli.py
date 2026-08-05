@@ -10,14 +10,17 @@ app = typer.Typer()
 console = Console()
 
 
-def _index_dir() -> Path:
-    return Path(INDEX_DIR_NAME)
+def _index_dir(vault_path: str) -> Path:
+    return Path(vault_path).expanduser() / INDEX_DIR_NAME
 
 
 @app.command()
 def index(vault_path: str, force: bool = typer.Option(False, "--force", "-f", help="Re-embed every file regardless of content hash")):
-    """Build or incrementally update the semantic index for a markdown vault."""
-    store = VectorStore.load(_index_dir())
+    """Build or incrementally update the semantic index for a markdown vault.
+
+    The index is stored inside the vault itself, at <vault_path>/.mdsearch.
+    """
+    store = VectorStore.load(_index_dir(vault_path))
 
     try:
         stats = store.build_or_update(Path(vault_path), force=force)
@@ -33,9 +36,9 @@ def index(vault_path: str, force: bool = typer.Option(False, "--force", "-f", he
 
 
 @app.command()
-def search(query: str, top_k: int = 5):
+def search(query: str, top_k: int = 5, vault_path: str = typer.Option(".", "--vault-path", help="Vault to search; must already be indexed")):
     """Search the indexed vault for chunks semantically relevant to query."""
-    store = VectorStore.load(_index_dir())
+    store = VectorStore.load(_index_dir(vault_path))
 
     try:
         results = store.search(query, top_k=top_k)
