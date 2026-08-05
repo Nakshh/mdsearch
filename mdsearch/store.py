@@ -193,7 +193,12 @@ class VectorStore:
 
         self._index = new_index
         self._chunks = new_chunks
-        self._manifest = {"model_name": self.model_name, "dim": dim, "files": new_manifest_files}
+        self._manifest = {
+            "model_name": self.model_name,
+            "dim": dim,
+            "files": new_manifest_files,
+            "indexed_at": time.time(),
+        }
 
         self.save()
 

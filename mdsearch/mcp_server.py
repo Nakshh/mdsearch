@@ -57,9 +57,30 @@ def _get_store() -> VectorStore:
     return _store
 
 
+def _needs_reindex(store: VectorStore) -> bool:
+    """Cheap staleness check: stat every .md file rather than hashing its
+    contents (that's what build_or_update does, and it's slower). Any
+    added/removed file, or any file touched since the last index run,
+    counts as stale."""
+    indexed_at = store._manifest.get("indexed_at")
+    if indexed_at is None:
+        return True
+
+    md_files = list(VAULT_PATH.rglob("*.md"))
+    current_rel_paths = {f.relative_to(VAULT_PATH).as_posix() for f in md_files}
+    if current_rel_paths != set(store._manifest.get("files", {}).keys()):
+        return True
+
+    return any(f.stat().st_mtime > indexed_at for f in md_files)
+
+
 @mcp.tool()
 def search_vault(query: str, top_k: int = 5) -> list[dict]:
     """Semantically search the indexed Obsidian vault for relevant note chunks.
+
+    Automatically re-indexes changed files first (cheap mtime check, then an
+    incremental `build_or_update` if anything looks stale), so results
+    reflect the current state of the vault without a manual `mdsearch index`.
 
     Args:
         query: Natural-language search query.
@@ -69,6 +90,12 @@ def search_vault(query: str, top_k: int = 5) -> list[dict]:
         A list of dicts, each with keys: file, chunk_id, score, text.
     """
     store = _get_store()
+
+    if _needs_reindex(store):
+        try:
+            store.build_or_update(VAULT_PATH)
+        except MissingHFTokenError as e:
+            raise RuntimeError(str(e))
 
     try:
         results = store.search(query, top_k=top_k)
