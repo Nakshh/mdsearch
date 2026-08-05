@@ -1,5 +1,5 @@
 [project]
-name = "mdsearch"
+name = "mdsearch-cli"
 version = "0.1.0"
 description = "Semantic search over a markdown (Obsidian) vault, as a CLI and an MCP server"
 readme = "README.md"

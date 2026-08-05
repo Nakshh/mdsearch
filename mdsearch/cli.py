@@ -19,7 +19,7 @@ def _index_dir(vault_path: str) -> Path:
 
 def _version_callback(value: bool) -> None:
     if value:
-        console.print(f"mdsearch {_pkg_version('mdsearch')}")
+        console.print(f"mdsearch {_pkg_version('mdsearch-cli')}")
         raise typer.Exit()
 
 

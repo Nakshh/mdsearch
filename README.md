@@ -25,12 +25,20 @@ the embedding model understands the two phrases are related.
 ## Install
 
 ```bash
+pip install mdsearch-cli
+```
+
+The package is named `mdsearch-cli` on PyPI (`mdsearch` was already taken by
+an unrelated project), but it installs the same `mdsearch` command and
+`mdsearch.*` Python package.
+
+To install from source instead:
+
+```bash
 git clone https://github.com/Nakshh/mdsearch.git
 cd mdsearch
 pip install -e .
 ```
-
-(Once published: `pip install mdsearch`.)
 
 Requires Python 3.11+. The first run downloads a small embedding model
 (`all-MiniLM-L6-v2`, ~90MB) from Hugging Face and caches it locally.
