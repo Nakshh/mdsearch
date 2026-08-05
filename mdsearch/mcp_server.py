@@ -31,6 +31,7 @@ from pathlib import Path
 from mcp.server.mcpserver import MCPServer
 
 from .constants import INDEX_DIR_NAME
+from .embedding import MissingHFTokenError
 from .store import EmptyIndexError, VaultNotFoundError, VectorStore
 
 # Resolved once at import time — not re-read per call, so changing the env
@@ -76,6 +77,8 @@ def search_vault(query: str, top_k: int = 5) -> list[dict]:
             f"The index at {_index_dir()} is empty or does not exist. "
             f"Run `mdsearch index {VAULT_PATH}` first, then retry."
         )
+    except MissingHFTokenError as e:
+        raise RuntimeError(str(e))
 
     return [
         {
@@ -112,6 +115,8 @@ def index_vault(vault_path: str, force: bool = False) -> dict:
         stats = store.build_or_update(target, force=force)
     except VaultNotFoundError as e:
         raise ValueError(str(e))
+    except MissingHFTokenError as e:
+        raise RuntimeError(str(e))
 
     return dataclasses.asdict(stats)
 

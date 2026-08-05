@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .constants import INDEX_DIR_NAME
+from .embedding import MissingHFTokenError
 from .store import EmptyIndexError, VaultNotFoundError, VectorStore
 
 app = typer.Typer()
@@ -44,7 +45,10 @@ def main(
 
 
 @app.command()
-def index(vault_path: str, force: bool = typer.Option(False, "--force", "-f", help="Re-embed every file regardless of content hash")):
+def index(
+    vault_path: str = typer.Argument(".", help="Vault to index; defaults to the current directory"),
+    force: bool = typer.Option(False, "--force", "-f", help="Re-embed every file regardless of content hash"),
+):
     """Build or incrementally update the semantic index for a markdown vault.
 
     The index is stored inside the vault itself, at <vault_path>/.mdsearch.
@@ -54,6 +58,9 @@ def index(vault_path: str, force: bool = typer.Option(False, "--force", "-f", he
     try:
         stats = store.build_or_update(Path(vault_path), force=force)
     except VaultNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+    except MissingHFTokenError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 
@@ -76,6 +83,9 @@ def search(
     try:
         results = store.search(query, top_k=top_k)
     except EmptyIndexError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+    except MissingHFTokenError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 
