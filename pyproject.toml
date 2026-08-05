@@ -6,6 +6,21 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Nakshh Kohli", email = "nakshhkohli04@gmail.com" }]
+keywords = ["semantic-search", "obsidian", "markdown", "faiss", "embeddings", "vector-search", "mcp", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Indexing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
 dependencies = [
     "faiss-cpu>=1.14",
     "sentence-transformers>=5.5",
@@ -15,6 +30,10 @@ dependencies = [
     "typer>=0.25",
     "rich>=15.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/Nakshh/mdsearch"
+Issues = "https://github.com/Nakshh/mdsearch/issues"
 
 [project.scripts]
 mdsearch = "mdsearch.cli:app"
